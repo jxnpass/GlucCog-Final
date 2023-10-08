@@ -4,12 +4,19 @@ library(nlme)
 library(scales)
 library(car)
 
+# For nlme::lme and car::Anova later on
+options(contrasts = c("contr.sum", "contr.poly"))
+
 glucCog <- read_csv("GlucCog Final/Cleaned Data/glucCog.csv")[-1]
 glucOnly <- read_csv("GlucCog Final/Cleaned Data/glucOnly.csv")[-1]
 
 sub_order <- as.vector(glucCog$Subject_Code %>% unique())
 glucCog <- glucCog %>% 
-  mutate(Subject_Code = factor(Subject_Code, levels = sub_order))  
+  mutate(Subject_Code = factor(Subject_Code, levels = sub_order),
+         Condition = factor(Condition, levels = c("Water", "Artificial", "Sugar")),
+         Session_Time = factor(Session_Time, 
+                               levels = c("ShortVisit","LongVisit20","LongVisit60")),
+         Order = as.factor(Order))
 
 ### Figure 1: Blood Glucose Levels by Group ---------
 
@@ -55,7 +62,8 @@ glucCog_short <- glucCog %>%
                                Test_Type == "Picture Sequence Memory" ~ "PSM")) %>% 
   mutate(Session_Time = case_when(Session_Time == "ShortVisit" ~ "SV",
                                   Session_Time == "LongVisit20" ~ "LV20",
-                                  Session_Time == "LongVisit60" ~ "LV60"))
+                                  Session_Time == "LongVisit60" ~ "LV60")) %>% 
+  mutate(Session_Time = factor(Session_Time, levels = c("SV", "LV20", "LV60")))
   
 compCog <- glucCog_short %>% 
   group_by(Subject_Code, Condition, Session_Time, Order) %>% 
@@ -72,7 +80,7 @@ gluc.gathered <- glucCog_short %>% gather(., key = "Type_Score", value = "Score"
 
 g2_df <- rbind(compCog, gluc.gathered) %>% 
   mutate(Test_Type = factor(Test_Type, levels = c("AVL","LSWM","OSD","PCPS","PSM","Composite"))) %>% 
-  mutate(Type_Score = factor(Type_Score, levels = c("Standardized","Raw")))
+  mutate(Type_Score = factor(Type_Score, levels = c("Standardized","Raw"))) 
 
 tests <- c("AVL","LSWM","OSD","PCPS","PSM","Composite")
 pvals <- rep(NA, 6)
@@ -80,8 +88,11 @@ pvals <- rep(NA, 6)
 for (i in 1:6) {
   mme <- lme(fixed = Score ~ Condition * Session_Time * Order,
              random = ~ 1 | Subject_Code,
+             contrasts = 
+               list(Condition = "contr.sum", 
+                    Session_Time = "contr.sum", 
+                    Order = "contr.sum"),
              data = g2_df %>% 
-                ungroup() %>% 
                 filter(Test_Type == tests[i], Type_Score == "Standardized"))
   
   anv <- Anova(mme, type = "III")
@@ -128,7 +139,7 @@ dev.off()
 
 ### Figure 3: Cognitive Performance by glucose level --------
 
-BGC.Cog <- glucOnly %>% 
+g3_df <- BGC.Cog <- glucOnly %>% 
   drop_na(Std_Score) %>% 
   select(Subject_Code, Session_Time, Condition, Test_Type, Std_Score, Raw_Score, BGC, Order) %>% 
   group_by(Subject_Code, Session_Time, Condition, Order) %>% 
@@ -142,7 +153,7 @@ BGC.Cog <- glucOnly %>%
 pdf("~/GlucoseCognition_Project/GlucCog Final/Outputs/figures/figure3",
     height = 6, width = 9)
 
-ggplot(data = BGC.Cog) +
+ggplot(data = g3_df) +
   geom_jitter(aes(x = BGC, y = Std_Score, fill = Condition, shape = Condition), size = 3) +
   geom_smooth(aes(x = BGC, y = Std_Score, color = Condition), se = F, method = "lm", show.legend = F) +
   scale_color_manual(values=c("Sugar" = "gray60", "Artificial" = "gray80", "Water" = "gray10")) + 
@@ -288,11 +299,10 @@ dev.off()
 vatRankCog <- g2_df %>% 
   filter(Type_Score == "Standardized") %>% 
   drop_na(VAT_Rank, Score) %>% 
-  mutate(Session_Time = as.character(Session_Time)) %>% 
   mutate(Session_Time = case_when(Session_Time == "SV" ~ "Base",
                                   Session_Time == "LV20" ~ "20m PC",
                                   Session_Time == "LV60" ~ "60m PC")) %>% 
-#  mutate(Session_Time = factor(Session_Time, levels = c("Base","0m PC", "20m PC","60m PC"))) %>% 
+  mutate(Session_Time = factor(Session_Time, levels = c("Base","0m PC", "20m PC","60m PC"))) %>% 
   group_by(Subject_Code, Session_Time, Condition, Order, Test_Type) %>% 
   summarize(Score = mean(Score), VAT_Rank = mean(VAT_Rank)) %>% 
   mutate(Test_Type = factor(Test_Type, levels = tests))
@@ -305,15 +315,16 @@ for (i in 1:6) {
   mme <- lme(fixed = Score ~ VAT_Rank * Session_Time * Order,
                    random = ~ 1 | Subject_Code,
                    data = vatRankCog %>% 
-                     filter(Test_Type == tests[i]), contrasts = "contr.treatment")
+                     filter(Test_Type == tests[i]), 
+             contrasts = list(Session_Time = contr.sum,
+                              Order = contr.sum))
   
-  anv <- Anova(mme, type = "II")
-  pvals[i] <- sprintf("%.3f", anv$`Pr(>Chisq)`[1]) # change to [5] for condition:session_time
+  anv <- Anova(mme, type = "III")
+  pvals[i] <- sprintf("%.3f", anv$`Pr(>Chisq)`[2]) # change to [5] for condition:session_time
   
 }
 
-# I need to determine which type of test of ANOVA I Want to do.
-# If I use type 2, VAT Rank is sig for pcps, If i use type 3, VAT Rank is not sig for pcps
+# Warning is not an issue: its detecting LV0 without any scoring/factors
 
 g7_df <- vatRankCog %>% 
   group_by(Subject_Code, Condition, Test_Type) %>% 
@@ -354,8 +365,6 @@ ggplot(data = g7_df,
 dev.off()
 
 ###
-
-
 
 
 # # | # | # | # #

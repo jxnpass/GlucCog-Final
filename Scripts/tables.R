@@ -5,6 +5,10 @@ library(gtsummary)
 library(gtable)
 library(cowplot)
 library(nlme)
+library(car)
+
+# For nlme::lme and car::Anova later on
+options(contrasts = c("contr.sum", "contr.poly"))
 
 glucCog <- read_csv("GlucCog Final/Cleaned Data/glucCog.csv")[-1]
 sub_order <- as.vector(glucCog$Subject_Code %>% unique())
@@ -186,12 +190,19 @@ vas_pvals$p <- round(vas_pvals$p, digits = 4)
 
 ### Table 4: ANOVA ------ 
 
+glucCog.f <- glucCog %>% 
+  mutate(Session_Time = factor(Session_Time, 
+                               levels = c("ShortVisit","LongVisit20","LongVisit60")),
+         Condition = factor(Condition, 
+                            levels = c("Water", "Artificial", "Sugar")))
+
+
 # Since score is standardized, I do not need to include Test Type as a variable
-glucCog_lme <- lme(fixed = Std_Score ~ Condition * Session_Time,
-                   random = ~1|Subject_Code,
-                   data = glucCog %>% 
-                     drop_na(Std_Score))
-glucCog_anova <- anova(glucCog_lme)
+glucCog_lme <- lme(fixed = Std_Score ~ Condition*Session_Time,
+                   random = ~1|Subject_Code, 
+                   data = glucCog.f,
+                   contrasts = list(Condition = contr.sum, Session_Time = contr.sum))
+glucCog_anova <- Anova(glucCog_lme, type = "III")
 
 # View(glucCog_anova)
 

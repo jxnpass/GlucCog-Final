@@ -3,14 +3,21 @@ library(tidyverse)
 library(nlme)
 library(car)
 
-glucCog <- read_csv("GlucCog Final/Cleaned Data/glucCog.csv")[-1] %>% 
-  mutate(Session_Time = as.factor(Session_Time),
-         Condition = as.factor(Condition),
-         Order = as.factor(Order))
-glucOnly <- read_csv("GlucCog Final/Cleaned Data/glucOnly.csv")[-1]
+# For nlme::lme and car::Anova later on
+options(contrasts = c("contr.sum", "contr.poly"))
 
-options(contrasts = c('contr.sum','contr.poly'))
-options(contrasts = c("contr.treatment", "contr.poly"))
+glucCog <- read_csv("GlucCog Final/Cleaned Data/glucCog.csv")[-1] 
+sub_order <- glucCog$Subject_Code %>% unique()
+
+glucCog <- glucCog %>% 
+  mutate(Session_Time = factor(Session_Time, levels = c("ShortVisit", "LongVisit20", "LongVisit60")),
+         Condition = factor(Condition, levels = c("Water", "Artificial", "Sugar")),
+         Order = factor(Order, levels = c("Short Visit First", "Treatment Visit First")),
+         Subject_Code = factor(Subject_Code, levels = sub_order))
+glucOnly <- read_csv("GlucCog Final/Cleaned Data/glucOnly.csv")[-1] %>% 
+  mutate(Session_Time = factor(Session_Time, levels = c("ShortVisit", "LongVisit0", "LongVisit20", "LongVisit60")),
+         Condition = factor(Condition, levels = c("Water", "Artificial", "Sugar")),
+         Order = factor(Order, levels = c("Short Visit First", "Treatment Visit First")))
 
 ### Treatment Order Differences ----------------
  
@@ -38,42 +45,41 @@ glucOnly %>%
 # basic #
 lme(fixed = Std_Score ~ Condition, 
     data = glucCog, 
-    random = ~1|Subject_Code) %>% Anova(type = "III")
+    random = ~1|Subject_Code,
+    contrasts = list(Condition = "contr.sum")) %>% 
+  Anova(type = "III")
 
 # add session time #
 lme(fixed = Std_Score ~ Condition * Session_Time, 
     data = glucCog, 
-    random = ~1|Subject_Code) %>% Anova(type = "III")
+    random = ~1|Subject_Code,
+    contrasts = list(Condition = "contr.sum", Session_Time = "contr.sum")) %>% 
+  Anova(type = "III")
 
 # include order # 
 lme(fixed = Std_Score ~ Condition * Session_Time * Order, 
     data = glucCog, 
-    random = ~1|Subject_Code) %>% Anova(type = "III")
+    random = ~1|Subject_Code,    
+    contrasts = 
+      list(Condition = "contr.sum", 
+           Session_Time = "contr.sum", 
+           Order = "contr.sum")) %>% 
+  Anova(type = "III")
 
 ### TESTING ### 
 
 # evaluate by BGC instead of condition type (more descriptive effects of BGC) #
-lme(fixed = Std_Score ~ BGC * Session_Time * Order, # switch order, much different results
+lme(fixed = Std_Score ~ BGC * Order * Session_Time,
     data = glucOnly %>% drop_na(Std_Score) %>% 
       group_by(Subject_Code, Condition, Session_Time, Order) %>% 
       summarize(BGC = mean(BGC), Std_Score = mean(Std_Score)), 
-    random = ~1|Subject_Code) %>% Anova(type = "III")
-# might have something. however, I don't think this tells us enough...
-lme(fixed = Std_Score ~ BGC * Session_Time * Order, 
-    data = glucOnly %>% drop_na(Std_Score) %>% 
-      group_by(Subject_Code, Condition, Session_Time, Order) %>% 
-      summarize(BGC = mean(BGC), Std_Score = mean(Std_Score)), 
-    random = ~1|Subject_Code) %>% anova()
+    random = ~1|Subject_Code,
+    contrasts = list(Session_Time = "contr.sum", 
+                     Order = "contr.sum")
+    ) %>% 
+  Anova(type = "III")
 
-BGC.Cog.lme <- lme(fixed = Std_Score ~ Session_Time * Order,
-                   random = ~1|Subject_Code,
-                   data = glucOnly %>% 
-                      drop_na(BGC, Std_Score)) 
-
-res <- BGC.Cog.lme$residuals[,1]
-
-# LM Results 
-lm(res ~ glucOnly$BGC[!is.na(glucOnly$Std_Score)]) %>% summary()
+# warning above indicates factor level is missing (LongVisit0). This is okay. 
 
 ### --- ###
 
@@ -88,13 +94,13 @@ glucCogComp <- glucCog %>%
   summarize(Std_Score = mean(Std_Score)) 
 
 # Baseline-1st-Order: SV to LV20 improvement
-glucCogComp$Std_Score[1] - glucCogComp$Std_Score[3]
-# Baseline-1st-Order: LV20 to LV60 improvement
 glucCogComp$Std_Score[2] - glucCogComp$Std_Score[1]
+# Baseline-1st-Order: LV20 to LV60 improvement
+glucCogComp$Std_Score[3] - glucCogComp$Std_Score[2]
 # Treatment-1st-Order: LV20 to LV60 improvement
-glucCogComp$Std_Score[5] - glucCogComp$Std_Score[4]
-# Treatment-1st-Order: LV60 to SV improvement
 glucCogComp$Std_Score[6] - glucCogComp$Std_Score[5]
+# Treatment-1st-Order: LV60 to SV improvement
+glucCogComp$Std_Score[4] - glucCogComp$Std_Score[6]
 
 ### VAT Analysis (LM against LME residuals) ----------------
 
@@ -108,8 +114,10 @@ VAT.Cog <- glucCog %>%
   mutate(Test_Type = "Composite") 
 
 VAT.Cog.lme <- lme(fixed = Std_Score ~ Session_Time * Order,
-                    random = ~1|Subject_Code,
-                    data = VAT.Cog) 
+                   random = ~1|Subject_Code,
+                   data = VAT.Cog,
+                   contrasts = list(Session_Time = "contr.sum",
+                                    Order = "contr.sum")) 
 
 compRes <- VAT.Cog.lme$residuals[,1]
 
@@ -121,7 +129,10 @@ sd(VAT.Cog$VAT_Rank) * -0.0018985
 
 lme(fixed = Std_Score ~ VAT_Rank * Session_Time * Order,
     random = ~1|Subject_Code,
-    data = VAT.Cog) %>% Anova(type = "II")
+    data = VAT.Cog,
+    contrasts = list(Session_Time = "contr.sum",
+                     Order = "contr.sum")) %>% 
+  Anova(type = "III")
 
 # PCPS score # 
 
@@ -146,7 +157,10 @@ sd(VAT.PCPS$VAT_Rank) * -0.005966
 
 lme(fixed = Std_Score ~ VAT_Rank * Session_Time * Order,
     random = ~1|Subject_Code,
-    data = VAT.PCPS) %>% Anova(type = "III")
+    data = VAT.PCPS,
+    contrasts = list(Session_Time = "contr.sum",
+                     Order = "contr.sum")) %>% 
+  Anova(type = "III")
 
 # BGC # 
 
@@ -158,7 +172,9 @@ VAT.BGC <- glucOnly %>%
 
 VAT.BGC.lme <- lme(fixed = BGC ~ Session_Time * Condition,
                   random = ~1|Subject_Code,
-                  data = VAT.BGC) 
+                  data = VAT.BGC,
+                  contrasts = list(Session_Time = contr.sum,
+                                   Condition = contr.sum)) 
 
 bgcRes <- VAT.BGC.lme$residuals[,1]
 
@@ -170,7 +186,10 @@ sd(VAT.BGC$VAT_Rank) * 0.05862
 
 lme(fixed = BGC ~ VAT_Rank * Session_Time * Condition,
     random = ~1|Subject_Code,
-    data = VAT.BGC) %>% Anova(type = "III")
+    data = VAT.BGC,
+    contrasts = list(Session_Time = contr.sum,
+                     Condition = contr.sum)) %>% 
+  Anova(type = "III")
 
 ### Condition on Cognitive Score per each test -----------
 
@@ -192,31 +211,15 @@ for (i in 1:length(tests)) {
   
   test.anv <- lme(fixed = Std_Score ~ Condition*Session_Time*Order,
                   data = test.dat, 
-                  random = ~1|Subject_Code) %>% anova()
+                  random = ~1|Subject_Code,
+                  contrasts = list(Condition = contr.sum,
+                                   Session_Time = contr.sum, 
+                                   Order = contr.sum)) %>% 
+    Anova(type = "III")
   
-  pvals$pval[i] <- test.anv$`p-value`[5] 
+  pvals$pval[i] <- test.anv$`Pr(>Chisq)`[5] 
   # pval of interest is condition:session_time, compared to condition with figure 3
 }
-
-pvals
-
-test.dat <- gluc.all.comp %>% 
-  filter(Test_Type == "Oral Symbol Digit")
-lme(fixed = Std_Score ~ Condition*Session_Time*Order,
-    data = gluc.all.comp %>% 
-      filter(Test_Type == "Oral Symbol Digit"), 
-    random = ~1|Subject_Code) %>% Anova(type = "III")
-
-
-### Deeper dive into OSD -------
-
-# A mathematical reflection from figure 5
-# gluc.all.comp %>% 
-#   mutate(Session_Time = factor(Session_Time, c("ShortVisit","LongVisit20","LongVisit60"))) %>% 
-#   filter(Test_Type == "Oral Symbol Digit") %>% 
-#   group_by(Condition, Session_Time, Order) %>% 
-#   summarize(sd(Std_Score), Std_Score = mean(Std_Score), n()) %>% 
-#   mutate(diff = c(NA, diff(Std_Score)))
 
 ### Greatest cognitive improvement (from learning effect) --------
 

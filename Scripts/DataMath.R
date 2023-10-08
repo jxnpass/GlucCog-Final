@@ -18,40 +18,25 @@ glucCog <- glucCog %>%
   filter(!No_Data,
          BMI > 17 & BMI < 40) 
 
-# glucCog %>% 
-#   group_by(Subject_Code) %>% 
+# glucCog %>%
+#   group_by(Subject_Code) %>%
 #   count() %>% nrow()
 
 ### Step 2: Standardize Cognitive Scores ---------------
-# omission of bad tests 
 
-test_avgs <- glucCog %>% 
-  filter(Session_Time != "LongVisit0") %>% 
-  drop_na(Raw_Score) %>% 
+# Standardizing/scaling test scores
+
+glucCog <- glucCog %>% 
   group_by(Test_Type) %>% 
-  summarize(Mean = mean(Raw_Score))
+  reframe(Subject_Code, Session_Time, Order, Std_Score = scale(Raw_Score), Raw_Score) %>% 
+  full_join(., y = glucCog, by = c("Subject_Code", "Session_Time", "Test_Type", "Order", "Raw_Score")) %>% 
+  select(Subject_Code, Raw_Score, Std_Score, Test_Type, Session_Time, everything()) %>% 
+  unique() %>% 
+  arrange(Subject_Code, Condition, Session_Time, Order, Test_Type)
 
-test_sds <- glucCog %>% 
-  filter(Session_Time != "LongVisit0") %>% 
-  drop_na(Raw_Score) %>% 
-  group_by(Test_Type) %>% 
-  summarize(SD = sd(Raw_Score))
-
-# Function for finding t score and graph
-
-glucCog$Std_Score <- NA
-
-TScore <- function(score, test_name) {
-  t.score <- (score - test_avgs$Mean[test_avgs$Test_Type == test_name]) / 
-    test_sds$SD[test_sds$Test_Type == test_name]
-  return(t.score)
-}
-
-for (i in 1:nrow(glucCog)) {
-  if (!is.na(glucCog$Raw_Score[i])) {
-    glucCog$Std_Score[i] <- TScore(glucCog$Raw_Score[i], glucCog$Test_Type[i]) 
-  }
-}
+# ggplot(data = glucCog %>% drop_na(Std_Score), aes(x = Std_Score, y = Raw_Score)) +
+#   geom_point(aes(color = Test_Type)) +
+#   facet_wrap(~Test_Type, scales = "free_y")
 
 # Ommitted two tests, FICA and DCCS (due to lack of variation)
 
@@ -102,8 +87,6 @@ write.csv(x = glucOnly, file = "GlucCog Final/Cleaned Data/glucOnly.csv")
 ### About the final two datasets -----------
 # DF glucCog has N = 130 subjects with reliable scoring data and meets composition requirements (BMI)
 # DF glucOnly has N = 94 subjects with reliable BGC data, shrinks to 85 when we need both scoring and BGC
-
-
 
 
 
