@@ -16,12 +16,12 @@ Over this period of time, our research team expanded their research hypotheses a
 Our research paper highlighted and answered these questions. The R programming project goes through each of these questions and reveals the processes by which we came to each conclusion.
 
 This folder contains the contents of the entire Gluc-Cog project. The project consists of four folders:
-1. [Raw Data](Raw Data)
+1. [Raw Data](./Raw%20Data)
 2. [Scripts](./Scripts)
-3. [Cleaned Data](Cleaned Data)
+3. [Cleaned Data](Cleaned%20Data)
 4. [Outputs](./Outputs)
 
-### [Raw Data](./Raw Data)
+### [Raw Data](./Raw%20Data)
 
 Raw data was collected from the department-funded research team. Lab data was collected to gather subject lifestyle and body composition information. Cognitive data from participants were collected using the NIH Toolbox Cognitive Battery Tests. In summary, the data collected from the experiment was as follows:
 
@@ -54,6 +54,6 @@ There are five scripts that perform differing needed processes.
 
 
 
-### [Cleaned Data](./Cleaned Data)
+### [Cleaned Data](./Cleaned%20Data)
 
 ### [Outputs](./Outputs)
