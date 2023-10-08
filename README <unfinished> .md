@@ -37,7 +37,7 @@ The raw data was collected over two spreadsheets, but the script 'DataPrep.R' co
 
 There are five scripts that perform differing needed processes. 
 
-1) [DataPrep.R] (/Scripts/DataPrep.R)
+1) [DataPrep.R] (Scripts/DataPrep.R)
     * Takes in the raw laboratory data (from Excel, two sheets), imports said data into R, and processes it for analysis
     * Formats observations -- race, sex, subject codes, test names, weight/height, etc.
     * Deletes rows without any substantive value (e.g. missing cognitive scores)
