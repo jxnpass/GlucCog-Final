@@ -16,12 +16,12 @@ Over this period of time, our research team expanded their research hypotheses a
 Our research paper highlighted and answered these questions. The R programming project goes through each of these questions and reveals the processes by which we came to each conclusion.
 
 This folder contains the contents of the entire Gluc-Cog project. The project consists of four folders:
-1. Raw Data
-2. Scripts
-3. Cleaned Data
-4. Outputs
+1. [Raw Data](./Raw Data)
+2. [Scripts](./Scripts)
+3. [Cleaned Data](./Cleaned Data)
+4. [Outputs](./Outputs)
 
-### Raw Data
+### [Raw Data](./Raw Data)
 
 Raw data was collected from the department-funded research team. Lab data was collected to gather subject lifestyle and body composition information. Cognitive data from participants were collected using the NIH Toolbox Cognitive Battery Tests. In summary, the data collected from the experiment was as follows:
 
@@ -33,7 +33,7 @@ Raw data was collected from the department-funded research team. Lab data was co
 
 The raw data was collected over two spreadsheets, but the script 'DataPrep.R' combines these data sets and cleans incorrect observations. I manually added information for some subjects, such as whether a group was using faulty glucose strips, the condition was mislabeled, the time of testing was incorrectly recorded, and many other necessary edits. 'DataPrep.R' handled the majority of these necessary calculations. 
 
-### Scripts
+### [Scripts](./Scripts)
 
 There are five scripts that perform differing needed processes. 
 
@@ -43,17 +43,17 @@ There are five scripts that perform differing needed processes.
     * Deletes rows without any substantive value (e.g. missing cognitive scores)
     * Writes out finished data to prepare for 'DataMath.R' as 'DataPrepOutput.csv'
   
-2) DataMath.R
+2) [DataMath.R](Scripts/DataMath.R)
     * Creates additional variables based on information previously provided, such as BMI, Visceral Adipose Tissue Rank, Standardized (scaled) Score.
-    * Exports data into two files, 'glucCog.csv' and 'glucOnly.csv.' Data was separated because our research questions required that we tested Condition (categorical) and BGC (numerical) against Cogntiive Scores separately. The BGC measurements were recorded using faulty instruments for ~50 subjects, forcing our sample size to change across research questions. 
+    * Exports data into two files, 'glucCog.csv' and 'glucOnly.csv.' Data was separated because our research questions required that we tested Condition (categorical) and BGC (numerical) against Cognitive Scores separately. The BGC measurements were recorded using faulty instruments for ~50 subjects, forcing our sample size to change across research questions. 
   
-3) tables.R
-    * Takes in data from 'glucCog.csv' and 
-4) figures.R
-5) analysis.R
+3) [tables.R](Scripts/tables.R)
+    * Takes in data from 'glucCog.csv' and generates four tables for the research paper. 
+4) [figures.R](Scripts/figures.R)
+5) [analysis.R](Scripts/analysis.R)
 
 
 
-### Cleaned Data
+### [Cleaned Data](./Cleaned Data)
 
-### Outputs
+### [Outputs](./Outputs)
