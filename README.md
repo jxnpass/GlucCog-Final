@@ -1,6 +1,6 @@
 # Gluc-Cog Project Overview
 
-UNFINISHED AS OF 10.9.23
+UNFINISHED AS OF 10.9.23 
 
 ## Introduction
 
