@@ -307,7 +307,7 @@ vatRankCog <- g2_df %>%
   summarize(Score = mean(Score), VAT_Rank = mean(VAT_Rank)) %>% 
   mutate(Test_Type = factor(Test_Type, levels = tests))
 
-### Scatterplot ###
+### pval calculation ###
 
 pvals <- rep(NA, 6)
 

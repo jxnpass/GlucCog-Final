@@ -16,6 +16,7 @@ Over this period of time, our research team expanded their research hypotheses a
 Our research paper highlighted and answered these questions. The R programming project goes through each of these questions and reveals the processes by which we came to each conclusion.
 
 This folder contains the contents of the entire Gluc-Cog project. The project consists of four folders:
+
 1. [Raw Data](./Raw%20Data)
 2. [Scripts](./Scripts)
 3. [Cleaned Data](Cleaned%20Data)
@@ -49,7 +50,16 @@ There are five scripts that perform differing needed processes.
   
 3) [tables.R](Scripts/tables.R)
     * Takes in data from 'glucCog.csv' and generates four tables for the research paper. 
+    * First table describes demographic data describing age, gender, race, marriage, employment, and medication status, and BMI measurements. Known as **Table 2** in paper. 
+    * Second table describes body compositions, such as fat, lean, bone mineral, and visceral adipose tissue measurements. We performed a one-way type 1 ANOVA to determine if these certain characteristics were failed to be distributed evenly across treatment groups (to avoid confounding). Known as **Tables 3A/3B** in paper.
+    * Third table describes visual analog scale scoring, which evaluates how subjects perceived the differing conditions/drinks. One-way type 1 ANOVA was also utilized for determining treatment differences. Known as **Table 4**.
+    * Fourth table represents the type 3 ANOVA results derived from fitting a linear mixed effects model (LME) with a 'sums' contrast on the categorical variables. The model fitted Condition, Session Time, Order, and all possible interaction combinations between them. These results determined our main conclusions. Known as **Table 5**.
+    * All tables are saved manually in [tables.docx](Outputs/tables.docx). Manually copying tables preserved the format better than exporting it through R.
+    
 4) [figures.R](Scripts/figures.R)
+    * Takes in data from 'glucCog.csv' and 'glucOnly.csv' and produces the seven visualizations and graphs. 
+    * 
+
 5) [analysis.R](Scripts/analysis.R)
 
 
