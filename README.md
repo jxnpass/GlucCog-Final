@@ -1,5 +1,7 @@
 # Gluc-Cog Project Overview
 
+UNFINISHED AS OF 10.9.23
+
 ## Introduction
 
 The Department of Nutrition, Dietetics, and Food Science at Brigham Young University aimed to determine in this study the effects of the AS aspartame, the caloric sugar sucrose, and water on short-term cognitive performance. In addition, glucose samples were collected as both a process measure and to correlate changes in blood glucose with any changes in cognitive performance. They hypothesized that an 11% sucrose-sweetened beverage would improve cognitive performance after a fasted state (as glucose levels rise) compared to the 0.05% aspartame-sweetened beverage or water ~20, and ~60 minutes post-consumption. They also inferred the aspartame and water groups would perform similarly in cognitive tasks as well as in blood glucose response. 
