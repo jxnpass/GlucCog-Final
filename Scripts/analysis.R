@@ -66,10 +66,8 @@ lme(fixed = Std_Score ~ Condition * Session_Time * Order,
            Order = "contr.sum")) %>% 
   Anova(type = "III")
 
-### TESTING ### 
-
 # evaluate by BGC instead of condition type (more descriptive effects of BGC) #
-lme(fixed = Std_Score ~ BGC * Order * Session_Time,
+lme(fixed = Std_Score ~ BGC * Session_Time * Order,
     data = glucOnly %>% drop_na(Std_Score) %>% 
       group_by(Subject_Code, Condition, Session_Time, Order) %>% 
       summarize(BGC = mean(BGC), Std_Score = mean(Std_Score)), 
@@ -195,11 +193,11 @@ lme(fixed = BGC ~ VAT_Rank * Session_Time * Condition,
 
 gluc.simple.comp <- glucCog %>% 
   group_by(Subject_Code, Condition, Session_Time, Order) %>% 
-  summarize(Std_Score = mean(Std_Score)) %>% 
+  summarize(Std_Score = mean(Std_Score), BGC = mean(BGC, na.rm = T)) %>% 
   ungroup() %>% 
   mutate(Test_Type = "Composite") 
 
-gluc.all.comp <- glucCog %>% select(Subject_Code, Condition, Session_Time, Order, Std_Score, Test_Type) %>% 
+gluc.all.comp <- glucCog %>% select(Subject_Code, Condition, Session_Time, Order, Std_Score, Test_Type, BGC) %>% 
   rbind(., gluc.simple.comp)
 
 tests <- gluc.all.comp$Test_Type %>% unique()
@@ -209,16 +207,24 @@ for (i in 1:length(tests)) {
   test.dat <- gluc.all.comp %>% 
     filter(Test_Type == tests[i])
   
-  test.anv <- lme(fixed = Std_Score ~ Condition*Session_Time*Order,
-                  data = test.dat, 
+  test.anv <- lme(fixed = Std_Score ~ Condition*Session_Time*Order, # can replace condition with BGC
+                  data = test.dat # %>% drop_na(BGC)
+                  ,
                   random = ~1|Subject_Code,
-                  contrasts = list(Condition = contr.sum,
+                  contrasts = list(Condition = contr.sum, # put '#' in front of Condition
                                    Session_Time = contr.sum, 
                                    Order = contr.sum)) %>% 
     Anova(type = "III")
   
   pvals$pval[i] <- test.anv$`Pr(>Chisq)`[5] 
-  # pval of interest is condition:session_time, compared to condition with figure 3
+  # print(test.anv)
+  # print(tests[i])
+  
+  ### Summary ###
+  # p-val of interest is condition:session_time, compared to just condition with figure 3
+  # we could also have interest in condition:session_time:order, 
+  # but three-term interactions are hard to wrap one's head around
+  # they're important to note, however, because they do contribute to testing significance
 }
 
 ### Greatest cognitive improvement (from learning effect) --------
