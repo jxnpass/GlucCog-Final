@@ -207,7 +207,8 @@ lab.dat.final <- full_join(lab.dat.BGC, lab.dat.series, by = c("Subject_Code", "
 ### Step 9: Join data sets by subject ID ------------
 
 full.dat <- full_join(x = lab.dat.final, y = cog.dat.final, by = c("Subject_Code", "Session_Time")) %>% 
-  select(Subject_Code, Condition, Session_Time, Raw_Score, BGC, Cog_Series, everything())
+  select(Subject_Code, Condition, Session_Time, Raw_Score, BGC, Cog_Series, everything()) %>% 
+  select(-If_withdrew_reason, -Day_of_cycle_short, -Day_of_cycle_long) # useless column(s)
 
 ### Step 10: Fix vars Married, Employed, etc. -----
 
