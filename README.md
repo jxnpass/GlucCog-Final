@@ -77,7 +77,7 @@ As discussed previously in the [Raw Data](#raw-data) and [Scripts](#scripts) sec
 
 [DataMath.R](Scripts/DataMath.R) took in [DataPrepOutput.csv](Cleaned%20Data/DataPrepOutput.csv) and resulted in writing both [glucCog.csv](Cleaned%20Data/glucCog.csv) and [glucOnly.csv](Cleaned%20Data/glucOnly.csv). This script was focused on taking a processed/cleaned data file and writing two new files required for the two sets of analysis. [glucOnly.csv](Cleaned%20Data/glucOnly.csv) is merely a subset of [glucCog.csv](Cleaned%20Data/glucCog.csv), where the sample size is restricted to those subjects with viable (non-expired) measurements in glucose. BMI was also calculated for each subject, which restricted the sample size to those with what was considered 'healthy' BMI values according to the NDFS department. This resulted in [glucOnly.csv](Cleaned%20Data/glucOnly.csv) with $N = 94$ subjects ($N = 84$ with cognitive measurements) and [glucCog.csv](Cleaned%20Data/glucCog.csv) with $N = 130$ subjects. 
 
-The formats of the two datasets are the same, and summarized in the format as follows.
+The formats of the two datasets are the same, and summarized in the table as follows.
 
 | Subject_Code      | Condition | Session_Time | Order | Test_Type | Std_Score | Raw_Score | BGC | Height | Weight | BMI | +31 columns | 
 | :----------------: | :-------: | :----------: | :----: | :-------: | -----: | ------: | -------: | ------: | ------: | ------: | :-----: |
@@ -92,6 +92,6 @@ The formats of the two datasets are the same, and summarized in the format as fo
 | CS_2_1     |  Water   | ShortVisit | TreatmentVisitFirst | AVL | -.52 | 33 | 90 | 163.5 | 57.90 | 21.6 | $\cdots$ |
 | $\vdots$   | $\vdots$ |   $\vdots$  | $\vdots$ | $\vdots$ | $\vdots$   | $\vdots$ |   $\vdots$  | $\vdots$ | $\vdots$ | $\vdots$ | $\ddots$ |
 
-A comprehensive table of what each variable name, type, and description is can be found here. 
+A comprehensive table of what each variable name, type, and description is can be found in [VAR_DESC.md](VAR_DESC.md). 
 
 ### [Outputs](./Outputs)
