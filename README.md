@@ -100,7 +100,7 @@ The two scripts [tables.R](Scripts/tables.R) and [figures.R](Scripts/figures.R) 
 
 #### Tables
 1) Demographics: Provides a general summary of participant traits by condition/group. Aggregates statistics in sex, age, race, medications, married, employed, height (cm), weight (kg), and BMI. 
-2) Body Characteristics: Provides a general summary of body compositions by condition/group. Aggregate statistics in lean mass (kg), fat mass (kg), bone mineral density (g/$\text{cm}^3$), bone mineral count (g), body fat percentage, and VAT (g and g/$\text{cm}^3$). One-way ANOVA tests calculated group differences and significances. 
+2) Body Characteristics: Provides a general summary of body compositions by condition/group. Aggregate statistics in lean mass (kg), fat mass (kg), bone mineral density (g/cm^3), bone mineral count (g), body fat percentage, and VAT (g and g/cm^3). One-way ANOVA tests calculated group differences and significances. 
 3) Visual Analog Scale: General scoring of each condition's visual perception and taste. Subjects rated (1-10 scale) how much they liked the taste of the drink, liked the color, how sweet the drink tasted, and how sour the drink tasted. One-way ANOVA tests calculated drinks differences, finding significant results in taste and sweetness between groups. 
 4) The ANOVA resulting from the fitted mixed model, analyzing cognitive score from condition, session times, and the interaction. The interaction term is arguably the most important, as we would suspect that the drink had the biggest influence on cognition at the time that the drink was consumed.
 
