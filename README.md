@@ -89,4 +89,5 @@ The two scripts [tables.R](Scripts/tables.R) and [figures.R](Scripts/figures.R) 
 3) Visual Analog Scale: General scoring of each condition's visual perception and taste. Subjects rated (1-10 scale) how much they liked the taste of the drink, liked the color, how sweet the drink tasted, and how sour the drink tasted. One-way ANOVA tests calculated drinks differences, finding significant results in taste and sweetness between groups. 
 4) The ANOVA resulting from the fitted mixed model, analyzing cognitive score from condition, session times, and the interaction. The interaction term is arguably the most important, as we would suspect that the drink had the biggest influence on cognition at the time that the drink was consumed.
 
-#### 
+#### Figures
+
