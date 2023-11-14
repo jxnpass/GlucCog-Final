@@ -44,3 +44,5 @@
 | No_Data       | ```lgl``` | Was there missing data? | TRUE, FALSE |
 | Non_Matching  | ```lgl``` | Was any body composition metrics not evaluated correctly? | TRUE, FALSE |
 | DateFinished  | ```date``` | Date of last visit | |  
+
+[Back to README.md](README.md)
