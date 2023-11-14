@@ -1,21 +1,6 @@
 # Gluc-Cog Project Overview
 
-UNFINISHED AS OF 10.30.23 
-
-## Introduction
-
-The Department of Nutrition, Dietetics, and Food Science at Brigham Young University aimed to determine in this study the effects of the AS aspartame, the caloric sugar sucrose, and water on short-term cognitive performance. In addition, glucose samples were collected as both a process measure and to correlate changes in blood glucose with any changes in cognitive performance. They hypothesized that an 11% sucrose-sweetened beverage would improve cognitive performance after a fasted state (as glucose levels rise) compared to the 0.05% aspartame-sweetened beverage or water ~20, and ~60 minutes post-consumption. They also inferred the aspartame and water groups would perform similarly in cognitive tasks as well as in blood glucose response. 
-
-I served as the main research assistant over statistical analysis, and my main role was to organize their laboratory data and test their hypotheses. Over the course of a year and a half, I have cleaned messy data, manipulated variables, performed and fitted varying models, and visualized the results. My progress was regularly checked by my statistics professor/advisor, and I regularly communicated work to those in the NDFS Department.
-
-Over this period of time, our research team expanded their research hypotheses and questions. The statistical methods I used are aimed towards answering the following:
-1. Is there an effect of drink content that has an effect on cognitive outcomes?
-2. Do the drinks affect the cognitive domains differently, such as executive function, memory, attention, or processing speed?
-3. How do drinks affect the blood glucose concentration (BGC) in participants after fasting for an extended period of time?
-4. How is BGC related to cognitive scoring?
-5. How are certain body characteristics related to BGC or cognitive scoring?
-
-Our research paper highlighted and answered these questions. The R programming project goes through each of these questions and reveals the processes by which we came to each conclusion.
+UNFINISHED AS OF 11.14.23 
 
 This folder contains the contents of the entire Gluc-Cog project. The project consists of four folders:
 

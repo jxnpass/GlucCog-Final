@@ -88,5 +88,5 @@ write.csv(x = glucOnly, file = "GlucCog Final/Cleaned Data/glucOnly.csv")
 # DF glucCog has N = 130 subjects with reliable scoring data and meets composition requirements (BMI)
 # DF glucOnly has N = 94 subjects with reliable BGC data, shrinks to 85 when we need both scoring and BGC
 
-
+.001*(2)^50
 
