@@ -1,15 +1,8 @@
-# Gluc-Cog Project Overview
+# Glucose Cognition Project Overview
 
-UNFINISHED AS OF 11.14.23 
+This folder contains the contents of the entire Gluc-Cog project. To review the project results, please see my [blog post](https://jxnpass.github.io/2024/09/01/GlucCog.html).
 
-This folder contains the contents of the entire Gluc-Cog project. The project consists of four folders:
-
-1. [Raw Data](./Raw%20Data)
-2. [Scripts](./Scripts)
-3. [Cleaned Data](Cleaned%20Data)
-4. [Outputs](./Outputs)
-
-### [Raw Data](./Raw%20Data)
+The project consists of four folders:
 
 Raw data was collected from the department-funded research team. Lab data was collected to gather subject lifestyle and body composition information. Cognitive data from participants were collected using the NIH Toolbox Cognitive Battery Tests. In summary, the data collected from the experiment was as follows:
 
@@ -78,16 +71,4 @@ The formats of the two datasets are the same, and summarized in the table as fol
 | $\vdots$   | $\vdots$ |   $\vdots$  | $\vdots$ | $\vdots$ | $\vdots$   | $\vdots$ |   $\vdots$  | $\vdots$ | $\vdots$ | $\vdots$ | $\ddots$ |
 
 I made a comprehensive [table](VAR_DESC.md) listing each variable name, type, and description, and levels. 
-
-### [Outputs](./Outputs)
-
-The two scripts [tables.R](Scripts/tables.R) and [figures.R](Scripts/figures.R) procure the two types of outputs: [tables.docx](Outputs/tables.docx) and the pdf files from the [figures folder](Outputs/figures). The [tables](Outputs/tables.docx) document consists of four tables describing subject characteristics, body characterisitcs, VAS scores (subjective rating of drink taste and color), and the ANOVA results from the mixed model evaluating cognitive score from condition and session times. 
-
-#### Tables
-1) Demographics: Provides a general summary of participant traits by condition/group. Aggregates statistics in sex, age, race, medications, married, employed, height (cm), weight (kg), and BMI. 
-2) Body Characteristics: Provides a general summary of body compositions by condition/group. Aggregate statistics in lean mass (kg), fat mass (kg), bone mineral density (g/cm^3), bone mineral count (g), body fat percentage, and VAT (g and g/cm^3). One-way ANOVA tests calculated group differences and significances. 
-3) Visual Analog Scale: General scoring of each condition's visual perception and taste. Subjects rated (1-10 scale) how much they liked the taste of the drink, liked the color, how sweet the drink tasted, and how sour the drink tasted. One-way ANOVA tests calculated drinks differences, finding significant results in taste and sweetness between groups. 
-4) The ANOVA resulting from the fitted mixed model, analyzing cognitive score from condition, session times, and the interaction. The interaction term is arguably the most important, as we would suspect that the drink had the biggest influence on cognition at the time that the drink was consumed.
-
-#### Figures
 
