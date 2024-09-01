@@ -6,6 +6,9 @@ library(gtable)
 library(cowplot)
 library(nlme)
 library(car)
+library(DescTools)
+library(pairwiseCI)
+library(reshape2)
 
 # For nlme::lme and car::Anova later on
 options(contrasts = c("contr.sum", "contr.poly"))
@@ -17,7 +20,8 @@ glucCog <- glucCog %>% mutate(Subject_Code = factor(Subject_Code, levels = sub_o
 ### Set up data so that each subject has one row (no duplication of characteristics) ---------
 
 char <- glucCog %>% 
-  select(1:2,9:12,15:22,24:33,36:39) %>% 
+  select(Subject_Code, Condition, everything()) %>% 
+  select(-BGC,-contains('Date'),-contains('Score'),-Session_Time, -Order,-Test_Type,-National_Percentile,-Theta,-SE,-Cog_Series) %>% 
   unique() %>% 
   mutate(Married = ifelse(Married == 0,F,T),
          Medications = ifelse(Medications == 0,F,T),
@@ -75,6 +79,33 @@ america <- char %>%
 
 range(america$Weight_lbs)
 range(america$Height_ft)
+
+### One-way ANOVA for demographics
+dg_cols <- colnames(char)[c(3:5,7:8,10:13)]
+dg_pvals <- data.frame(cols = dg_cols, type = NA, test_stat = NA, p = NA)
+
+for (i in 1:length(dg_cols)) {
+  label <- dg_cols[i]
+  if (i %in% c(4,6:9)) {
+    chi_df = data.frame(Condition = char$Condition,
+                        y = char[label])
+    result <- chisq.test(x = chi_df$Condition,
+                         y = chi_df[,2])
+    dg_pvals$test_stat[i] <- result$statistic
+    dg_pvals$p[i] <- result$p.value
+    dg_pvals$type[i] = 'Chi-Sq'
+  }
+  else {
+    formula_str <- paste(label, "~ Condition")
+    my_lm <- lm(formula_str, data = char)
+    result <- anova(my_lm)
+    dg_pvals$test_stat[i] <- result$`F value`[1]
+    dg_pvals$p[i] <- result$`Pr(>F)`[1]
+    dg_pvals$type[i] <- 'F-stat'
+  }
+}
+
+# View(dg_pvals)
 
 ### Table 2: Body Composition ----------
 
@@ -188,17 +219,70 @@ vas_pvals$p <- round(vas_pvals$p, digits = 4)
 
 # View(vas_pvals)
 
+# Pairwise differences
+
+Bonf <- function(data, VAS_type) {
+  
+  # prep data
+  vas_data = data %>% 
+    select(Condition, VAS_type) %>% 
+    rename(Response = VAS_type) %>% 
+    drop_na()
+  
+  # calculate p-values
+  p_tb <- pairwise.t.test(x = vas_data$Response, 
+                  g = vas_data$Condition,
+                  p.adjust.method = 'bonferroni',
+                  alternative = 'two.sided')
+  p_tb <- p_tb$p.value
+  p_tb <- p_tb %>% melt() %>% 
+    mutate(Comparison = paste(Var1, Var2, sep = "-")) %>% 
+    rename(P_val = value) %>% 
+    select(Comparison, P_val) %>% 
+    drop_na()
+
+  # calculate pairwise CIs
+  row_names <- p_tb$Comparison
+  pw <- pairwiseCI(Response ~ Condition, data = vas_data, method = "Param.diff",
+                   alternative = 'two.sided', conf.level=1-0.05/3, var.equal = F)
+  pw_tb <- pw$byout
+  pw_tb <- pw_tb[[1]]
+  tb <- pw_tb %>% 
+    as_tibble() %>% 
+    select(estimate, lower, upper) %>% 
+    cbind(p_tb) %>% 
+    select(Comparison, everything())
+  
+  return(tb)  
+  
+}
+
+pw_like <- Bonf(char,'VAS_like') %>% mutate(Type = "Like")
+pw_sweet <- Bonf(char, 'VAS_sweet') %>% mutate(Type = "Sweet")
+pw_sour <- Bonf(char, 'VAS_sour') %>% mutate(Type = "Sour")
+pw_color <- Bonf(char, "VAS_color") %>% mutate(Type = "Color")
+
+pw_df <- rbind(pw_like, pw_sweet, pw_sour, pw_color) %>% 
+  mutate(estimate = round(estimate, digits = 4),
+         lower = round(lower, digits = 4),
+         upper = round(upper, digits = 4),
+         P_val = round(P_val, digits = 4)) %>% 
+  select(Type, everything() )
+
+# View(pw_df)
+
 ### Table 4: ANOVA ------ 
 
 glucCog.f <- glucCog %>% 
   mutate(Session_Time = factor(Session_Time, 
                                levels = c("ShortVisit","LongVisit20","LongVisit60")),
          Condition = factor(Condition, 
-                            levels = c("Water", "Artificial", "Sugar")))
+                            levels = c("Water", "Artificial", "Sugar"))) %>% 
+  filter(Test_Type != "Cognition Fluid Composite v1.1")
 
 
-# Since score is standardized, I do not need to include Test Type as a variable
-glucCog_lme <- lme(fixed = Std_Score ~ Condition*Session_Time,
+# Since score is normed, I do not need to include Test Type as a variable
+glucCog_lme <- lme(fixed = FullC_T_Score ~ Condition*Session_Time,
                    random = ~1|Subject_Code, 
                    data = glucCog.f,
                    contrasts = list(Condition = contr.sum, Session_Time = contr.sum))
@@ -207,5 +291,4 @@ glucCog_anova <- Anova(glucCog_lme, type = "III")
 # View(glucCog_anova)
 
 ### Outputs of tables filed into tables.docx and tables.pdf
-
 

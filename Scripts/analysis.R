@@ -3,6 +3,9 @@ library(tidyverse)
 library(nlme)
 library(car)
 
+### I NEED TO ADD SECTIONS FOR EACH FIGURE/TABLE ON 
+### THIS SCRIPT WHERE I CALCULATE RESULTS
+
 # For nlme::lme and car::Anova later on
 options(contrasts = c("contr.sum", "contr.poly"))
 
@@ -39,26 +42,38 @@ glucOnly %>%
   ungroup() %>% 
   group_by(Session_Time, Condition) %>% 
   summarize(BGC = mean(BGC))
-  
+
+glucOnly %>% 
+  group_by(Subject_Code, Session_Time, Condition) %>% 
+  summarise(BGC = mean(BGC)) %>% 
+  ungroup() %>% 
+  lme(fixed = BGC ~ Session_Time*Condition, 
+      random = ~1|Subject_Code,
+      data = .) %>% 
+  Anova(type = 3)
+
 ### Cognitive score by condition ----------
 
 # basic #
-lme(fixed = Std_Score ~ Condition, 
-    data = glucCog, 
+lme(fixed = FullC_T_Score ~ Condition, 
+    data = glucCog %>% 
+      filter(Test_Type != "Cognition Fluid Composite v1.1"), 
     random = ~1|Subject_Code,
     contrasts = list(Condition = "contr.sum")) %>% 
   Anova(type = "III")
 
 # add session time #
-lme(fixed = Std_Score ~ Condition * Session_Time, 
-    data = glucCog, 
+lme(fixed = FullC_T_Score ~ Condition * Session_Time, 
+    data = glucCog %>% 
+      filter(Test_Type != "Cognition Fluid Composite v1.1"),  
     random = ~1|Subject_Code,
     contrasts = list(Condition = "contr.sum", Session_Time = "contr.sum")) %>% 
   Anova(type = "III")
 
 # include order # 
-lme(fixed = Std_Score ~ Condition * Session_Time * Order, 
-    data = glucCog, 
+lme(fixed = FullC_T_Score ~ Condition * Session_Time * Order, 
+    data = glucCog %>% 
+      filter(Test_Type != "Cognition Fluid Composite v1.1"),   
     random = ~1|Subject_Code,    
     contrasts = 
       list(Condition = "contr.sum", 
@@ -67,10 +82,12 @@ lme(fixed = Std_Score ~ Condition * Session_Time * Order,
   Anova(type = "III")
 
 # evaluate by BGC instead of condition type (more descriptive effects of BGC) #
-lme(fixed = Std_Score ~ BGC * Session_Time * Order,
-    data = glucOnly %>% drop_na(Std_Score) %>% 
-      group_by(Subject_Code, Condition, Session_Time, Order) %>% 
-      summarize(BGC = mean(BGC), Std_Score = mean(Std_Score)), 
+lme(fixed = FullC_T_Score ~ BGC * Session_Time * Order,
+    data = glucOnly %>% 
+      filter(Test_Type == "Cognition Fluid Composite v1.1") %>% 
+      drop_na(FullC_T_Score) %>% 
+      group_by(Subject_Code, Condition, Session_Time, Order,  Test_Type) %>% 
+      summarize(BGC = mean(BGC), FullC_T_Score = mean(FullC_T_Score)), 
     random = ~1|Subject_Code,
     contrasts = list(Session_Time = "contr.sum", 
                      Order = "contr.sum")
@@ -84,48 +101,41 @@ lme(fixed = Std_Score ~ BGC * Session_Time * Order,
 ### Cognitive score improvement tracking based on order of testing -------
 
 glucCogComp <- glucCog %>%
-  drop_na(Std_Score) %>% 
-  group_by(Subject_Code, Session_Time, Order) %>% 
-  summarize(Std_Score = mean(Std_Score)) %>% 
-  ungroup() %>% 
+  filter(Test_Type == "Cognition Fluid Composite v1.1") %>% 
   group_by(Order, Session_Time) %>% 
-  summarize(Std_Score = mean(Std_Score)) 
+  summarize(FullC_T_Score = mean(FullC_T_Score)) 
 
 # Baseline-1st-Order: SV to LV20 improvement
-glucCogComp$Std_Score[2] - glucCogComp$Std_Score[1]
+glucCogComp$FullC_T_Score[2] - glucCogComp$FullC_T_Score[1]
 # Baseline-1st-Order: LV20 to LV60 improvement
-glucCogComp$Std_Score[3] - glucCogComp$Std_Score[2]
+glucCogComp$FullC_T_Score[3] - glucCogComp$FullC_T_Score[2]
 # Treatment-1st-Order: LV20 to LV60 improvement
-glucCogComp$Std_Score[6] - glucCogComp$Std_Score[5]
+glucCogComp$FullC_T_Score[6] - glucCogComp$FullC_T_Score[5]
 # Treatment-1st-Order: LV60 to SV improvement
-glucCogComp$Std_Score[4] - glucCogComp$Std_Score[6]
+glucCogComp$FullC_T_Score[4] - glucCogComp$FullC_T_Score[6]
 
 ### VAT Analysis (LM against LME residuals) ----------------
 
 # cognition composite score #
 
-VAT.Cog <- glucCog %>% 
-  drop_na(Std_Score, VAT_Rank) %>% 
-  group_by(Subject_Code, Condition, Session_Time, Order, VAT_Rank) %>% 
-  summarize(Std_Score = mean(Std_Score)) %>% 
-  ungroup() %>% 
-  mutate(Test_Type = "Composite") 
+VAT.Comp <- glucCog %>% 
+  filter(Test_Type == "Cognition Fluid Composite v1.1")
 
-VAT.Cog.lme <- lme(fixed = Std_Score ~ Session_Time * Order,
+VAT.Cog.lme <- lme(fixed = FullC_T_Score ~ Session_Time * Order,
                    random = ~1|Subject_Code,
-                   data = VAT.Cog,
+                   data = VAT.Comp,
                    contrasts = list(Session_Time = "contr.sum",
                                     Order = "contr.sum")) 
 
 compRes <- VAT.Cog.lme$residuals[,1]
 
 # LM Results 
-lm(compRes ~ VAT.Cog$VAT_Rank) %>% summary()
-sd(VAT.Cog$VAT_Rank) * -0.0018985
+lm(compRes ~ VAT.Comp$VAT_Rank) %>% summary()
+sd(VAT.Comp$VAT_Rank) * -0.02243
 
 # ANOVA Results
 
-lme(fixed = Std_Score ~ VAT_Rank * Session_Time * Order,
+lme(fixed = FullC_T_Score ~ VAT_Rank * Session_Time * Order,
     random = ~1|Subject_Code,
     data = VAT.Cog,
     contrasts = list(Session_Time = "contr.sum",
@@ -135,13 +145,9 @@ lme(fixed = Std_Score ~ VAT_Rank * Session_Time * Order,
 # PCPS score # 
 
 VAT.PCPS <- glucCog %>% 
-  filter(Test_Type == "Pattern Comparison Processing Speed") %>% 
-  drop_na(Std_Score, VAT_Rank) %>% 
-  group_by(Subject_Code, Session_Time, Order, VAT_Rank) %>% 
-  summarize(Std_Score = mean(Std_Score)) %>% 
-  ungroup()
+  filter(Test_Type == "Pattern Comparison Processing Speed")
 
-VAT.PCPS.lme <- lme(fixed = Std_Score ~  Session_Time * Order,
+VAT.PCPS.lme <- lme(fixed = FullC_T_Score ~ Session_Time * Order,
                   random = ~1|Subject_Code,
                   data = VAT.PCPS) 
 
@@ -149,11 +155,11 @@ pcpsRes <- VAT.PCPS.lme$residuals[,1]
 
 # LM results
 lm(pcpsRes ~ VAT.PCPS$VAT_Rank) %>% summary()
-sd(VAT.PCPS$VAT_Rank) * -0.005966
+sd(VAT.PCPS$VAT_Rank) * -0.05111
 
 # ANOVA Results
 
-lme(fixed = Std_Score ~ VAT_Rank * Session_Time * Order,
+lme(fixed = FullC_T_Score ~ VAT_Rank * Session_Time * Order,
     random = ~1|Subject_Code,
     data = VAT.PCPS,
     contrasts = list(Session_Time = "contr.sum",
@@ -163,7 +169,6 @@ lme(fixed = Std_Score ~ VAT_Rank * Session_Time * Order,
 # BGC # 
 
 VAT.BGC <- glucOnly %>% 
-  drop_na(BGC, VAT_Rank) %>% 
   group_by(Subject_Code, Condition, Session_Time, VAT_Rank) %>% 
   summarize(BGC = mean(BGC)) %>% 
   ungroup()
@@ -189,34 +194,55 @@ lme(fixed = BGC ~ VAT_Rank * Session_Time * Condition,
                      Condition = contr.sum)) %>% 
   Anova(type = "III")
 
+# BGC on Cognition #
+
+cog.BGC <- glucOnly %>% 
+  filter(Test_Type == "Cognition Fluid Composite v1.1") %>% 
+  select(Subject_Code, Condition, Session_Time, Order, BGC, FullC_T_Score) %>% 
+  unique()
+
+cog.BGC.lme <- lme(fixed = FullC_T_Score ~ Session_Time * Order,
+                   random = ~1|Subject_Code,
+                   data = cog.BGC,
+                   contrasts = list(Session_Time = contr.sum,
+                                    Order = contr.sum)) 
+
+cogBGCRes <- cog.BGC.lme$residuals[,1]
+
+# LM results
+lm(cogBGCRes ~ cog.BGC$BGC) %>% summary()
+sd(cog.BGC$BGC) * -0.01191
+# commentary: from lowest to highest of the BGC range, cognition decreases by 1 'point'
+
+# ANOVA results
+
+lme(fixed = FullC_T_Score ~ BGC * Session_Time * Order,
+    random = ~1|Subject_Code,
+    data = cog.BGC,
+    contrasts = list(Order = contr.sum,
+                     Session_Time = contr.sum)) %>% 
+  Anova(type = "III")
+
+
 ### Condition on Cognitive Score per each test -----------
 
-gluc.simple.comp <- glucCog %>% 
-  group_by(Subject_Code, Condition, Session_Time, Order) %>% 
-  summarize(Std_Score = mean(Std_Score), BGC = mean(BGC, na.rm = T)) %>% 
-  ungroup() %>% 
-  mutate(Test_Type = "Composite") 
-
-gluc.all.comp <- glucCog %>% select(Subject_Code, Condition, Session_Time, Order, Std_Score, Test_Type, BGC) %>% 
-  rbind(., gluc.simple.comp)
-
-tests <- gluc.all.comp$Test_Type %>% unique()
+tests <- glucCog$Test_Type %>% unique()
 pvals <- data.frame("test_type" = tests, "pval" = NA)
 
 for (i in 1:length(tests)) {
-  test.dat <- gluc.all.comp %>% 
+  test.dat <- glucCog %>% # change to glucOnly if testing BGC
     filter(Test_Type == tests[i])
   
-  test.anv <- lme(fixed = Std_Score ~ Condition*Session_Time*Order, # can replace condition with BGC
+  test.anv <- lme(fixed = FullC_T_Score ~ Condition*Session_Time*Order, # can replace condition with BGC
                   data = test.dat # %>% drop_na(BGC)
                   ,
                   random = ~1|Subject_Code,
-                  contrasts = list(Condition = contr.sum, # put '#' in front of Condition
+                  contrasts = list(Condition = contr.sum, # put '#' in front of Condition if testing BGC
                                    Session_Time = contr.sum, 
                                    Order = contr.sum)) %>% 
     Anova(type = "III")
   
-  pvals$pval[i] <- test.anv$`Pr(>Chisq)`[5] 
+  pvals$pval[i] <- test.anv$`Pr(>Chisq)`[2] 
   # print(test.anv)
   # print(tests[i])
   
@@ -231,7 +257,7 @@ for (i in 1:length(tests)) {
 
 # mainly interested in knowing how big improvements were from session 1, 2, then 3,
 # regardless of condition, or order of test taking
-improv.df <- gluc.all.comp %>% 
+improv.df <- glucCog %>% 
   mutate(SessionNumber = 
          case_when(Order == "Short Visit First" & Session_Time == "ShortVisit" ~ 1,
                    Order == "Short Visit First" & Session_Time == "LongVisit20" ~ 2,
@@ -240,8 +266,8 @@ improv.df <- gluc.all.comp %>%
                    Order == "Treatment Visit First" & Session_Time == "LongVisit60" ~ 2,
                    Order == "Treatment Visit First" & Session_Time == "ShortVisit" ~ 3)) %>% 
   group_by(Test_Type, SessionNumber) %>% 
-  summarize(Std_Score = mean(Std_Score)) %>% 
-  mutate(diff = c(NA, diff(Std_Score))) %>% 
+  summarize(FullC_T_Score = mean(FullC_T_Score)) %>% 
+  mutate(diff = c(NA, diff(FullC_T_Score))) %>% 
   ungroup()
 
 tot_change.df <- improv.df %>% 
@@ -249,20 +275,11 @@ tot_change.df <- improv.df %>%
   summarize(tot_change = sum(diff, na.rm = T))
 
 tot_change.df
-# AVL had biggest 1 to 3 improvement 
-# LSM had smallest 1 to 3 improvement
-
-### Which VATs were 0? -------------
-
-glucCog %>% 
-  filter(VAT_g == 0) %>% 
-  select(Subject_Code, BMI, VAT_g) %>% 
-  unique()
+# PSM had biggest 1 to 3 improvement 
+# DCCS had smallest 1 to 3 improvement
 
 
-
-
-
+  
 
 
 
